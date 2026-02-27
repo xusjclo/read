@@ -1,0 +1,9 @@
+services:
+  yuedu:
+    build: .
+    container_name: yuedu
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
