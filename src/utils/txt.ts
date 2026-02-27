@@ -1,4 +1,4 @@
-import type { BookMeta } from './db'
+import { generateId, type BookMeta } from './db'
 
 /**
  * 检测 ArrayBuffer 的文本编码并解码为字符串
@@ -62,7 +62,7 @@ export function decodeTextBuffer(buffer: ArrayBuffer): string {
 export function parseTxtMeta(fileName: string, fileSize: number): Omit<BookMeta, 'addedAt'> {
   const title = fileName.replace(/\.txt$/i, '') || '未知书名'
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     title,
     author: '未知作者',
     cover: null,

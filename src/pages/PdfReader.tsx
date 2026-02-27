@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import * as pdfjsLib from 'pdfjs-dist'
 import { useBookStore } from '../stores/bookStore'
-import { getBookFile } from '../utils/db'
+import { getBookFile, generateId } from '../utils/db'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 
@@ -180,7 +180,7 @@ export default function PdfReader() {
       removeBookmark(bookId, existing.id)
     } else {
       addBookmark({
-        id: crypto.randomUUID(),
+        id: generateId(),
         bookId,
         cfi: location,
         text: `第 ${currentPage} 页`,

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import ePub from 'epubjs'
 import type { Book, Rendition, NavItem } from 'epubjs'
 import { useBookStore } from '../stores/bookStore'
+import { generateId } from '../utils/db'
 import { getBookFile } from '../utils/db'
 
 interface TocItem {
@@ -146,7 +147,7 @@ export default function EpubReader() {
       await removeBookmark(bookId, existing.id)
     } else {
       await addBookmark({
-        id: crypto.randomUUID(),
+        id: generateId(),
         bookId,
         cfi,
         text: currentChapter || '未知位置',

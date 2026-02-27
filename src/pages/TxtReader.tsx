@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useBookStore } from '../stores/bookStore'
-import { getBookFile } from '../utils/db'
+import { getBookFile, generateId } from '../utils/db'
 import { parseTxtContent, decodeTextBuffer, type TxtChapter } from '../utils/txt'
 
 const THEME_BG: Record<string, string> = { light: '#ffffff', dark: '#1a1a2e', sepia: '#f4ecd8' }
@@ -280,7 +280,7 @@ export default function TxtReader() {
       removeBookmark(bookId, existing.id)
     } else {
       addBookmark({
-        id: crypto.randomUUID(),
+        id: generateId(),
         bookId,
         cfi: location,
         text: currentChapterName || `第 ${currentPage + 1} 页`,

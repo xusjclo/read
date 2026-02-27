@@ -1,5 +1,5 @@
 import ePub from 'epubjs'
-import type { BookMeta } from './db'
+import { generateId, type BookMeta } from './db'
 
 export async function parseEpubMeta(file: ArrayBuffer): Promise<Omit<BookMeta, 'addedAt' | 'fileSize'>> {
   const book = ePub(file)
@@ -19,7 +19,7 @@ export async function parseEpubMeta(file: ArrayBuffer): Promise<Omit<BookMeta, '
     // no cover
   }
 
-  const id = crypto.randomUUID()
+  const id = generateId()
 
   book.destroy()
 
