@@ -35,7 +35,7 @@ export async function saveBookFile(id: string, file: ArrayBuffer, meta: Omit<Boo
   const formData = new FormData()
   const ext = meta.format === 'epub' ? '.epub' : meta.format === 'pdf' ? '.pdf' : '.txt'
   const blob = new Blob([file], { type: 'application/octet-stream' })
-  formData.append('file', blob, `${id}${ext}`)
+  // 确保文本字段在 file 字段之前，以便 multer 能先解析 body
   formData.append('id', id)
   formData.append('title', meta.title)
   formData.append('author', meta.author)
@@ -43,8 +43,13 @@ export async function saveBookFile(id: string, file: ArrayBuffer, meta: Omit<Boo
   formData.append('format', meta.format)
   formData.append('addedAt', String(meta.addedAt))
   formData.append('fileSize', String(meta.fileSize))
+  formData.append('file', blob, `${id}${ext}`)
 
-  await fetch(`${API_BASE}/books`, { method: 'POST', body: formData })
+  const res = await fetch(`${API_BASE}/books`, { method: 'POST', body: formData })
+  if (!res.ok) {
+    const text = await res.text().catch(() => 'Unknown error')
+    throw new Error(`上传失败 (${res.status}): ${text}`)
+  }
 }
 
 export async function getBookFile(id: string): Promise<ArrayBuffer | null> {

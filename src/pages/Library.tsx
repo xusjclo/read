@@ -68,7 +68,7 @@ export default function Library() {
       }
     } catch (err) {
       console.error('上传失败:', err)
-      alert('上传失败，请确保文件格式有效')
+      alert(`上传失败: ${err instanceof Error ? err.message : '请确保文件格式有效'}`)
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''

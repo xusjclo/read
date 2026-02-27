@@ -97,29 +97,42 @@ app.get('/api/books', (_req, res) => {
 })
 
 // 上传书籍
-app.post('/api/books', upload.single('file'), (req, res) => {
-  try {
-    const { id, title, author, cover, format, addedAt, fileSize } = req.body
-    let filePath: string | null = null
-
-    if (req.file) {
-      const ext = format === 'epub' ? '.epub' : format === 'pdf' ? '.pdf' : '.txt'
-      const finalName = `${id}${ext}`
-      const finalPath = path.join(FILES_DIR, finalName)
-      fs.renameSync(req.file.path, finalPath)
-      filePath = finalName
+app.post('/api/books', (req, res) => {
+  upload.single('file')(req, res, (uploadErr) => {
+    if (uploadErr) {
+      console.error('Multer upload error:', uploadErr)
+      return res.status(400).json({ error: `Upload error: ${uploadErr.message}` })
     }
 
-    db.run(
-      'INSERT OR REPLACE INTO books (id, title, author, cover, format, addedAt, fileSize, filePath) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [id, title, author || '', cover || null, format, Number(addedAt), Number(fileSize), filePath]
-    )
-    saveDb()
-    res.json({ success: true })
-  } catch (err) {
-    console.error('Upload error:', err)
-    res.status(500).json({ error: 'Upload failed' })
-  }
+    try {
+      const { id, title, author, cover, format, addedAt, fileSize } = req.body
+      console.log('Upload request body:', { id, title, format, fileSize, hasFile: !!req.file })
+
+      if (!id || !title || !format) {
+        return res.status(400).json({ error: `Missing required fields: id=${id}, title=${title}, format=${format}` })
+      }
+
+      let filePath: string | null = null
+
+      if (req.file) {
+        const ext = format === 'epub' ? '.epub' : format === 'pdf' ? '.pdf' : '.txt'
+        const finalName = `${id}${ext}`
+        const finalPath = path.join(FILES_DIR, finalName)
+        fs.renameSync(req.file.path, finalPath)
+        filePath = finalName
+      }
+
+      db.run(
+        'INSERT OR REPLACE INTO books (id, title, author, cover, format, addedAt, fileSize, filePath) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [id, title, author || '', cover || null, format, Number(addedAt), Number(fileSize), filePath]
+      )
+      saveDb()
+      res.json({ success: true })
+    } catch (err) {
+      console.error('Upload error:', err)
+      res.status(500).json({ error: `Upload failed: ${err instanceof Error ? err.message : String(err)}` })
+    }
+  })
 })
 
 // 下载书籍文件
