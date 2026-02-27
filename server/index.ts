@@ -17,16 +17,9 @@ fs.mkdirSync(FILES_DIR, { recursive: true })
 app.use(cors())
 app.use(express.json())
 
-// 文件上传配置
+// 文件上传配置：先存为临时文件，路由中再重命名
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, FILES_DIR),
-    filename: (_req, file, cb) => {
-      const ext = path.extname(file.originalname)
-      const id = _req.body.id || Date.now().toString()
-      cb(null, `${id}${ext}`)
-    },
-  }),
+  dest: FILES_DIR,
   limits: { fileSize: 200 * 1024 * 1024 }, // 200MB
 })
 
@@ -107,7 +100,15 @@ app.get('/api/books', (_req, res) => {
 app.post('/api/books', upload.single('file'), (req, res) => {
   try {
     const { id, title, author, cover, format, addedAt, fileSize } = req.body
-    const filePath = req.file ? req.file.filename : null
+    let filePath: string | null = null
+
+    if (req.file) {
+      const ext = format === 'epub' ? '.epub' : format === 'pdf' ? '.pdf' : '.txt'
+      const finalName = `${id}${ext}`
+      const finalPath = path.join(FILES_DIR, finalName)
+      fs.renameSync(req.file.path, finalPath)
+      filePath = finalName
+    }
 
     db.run(
       'INSERT OR REPLACE INTO books (id, title, author, cover, format, addedAt, fileSize, filePath) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
